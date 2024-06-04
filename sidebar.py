@@ -47,4 +47,3 @@ def init_sidebar():
 
                     texts = split_documents(file_path)
                     store.add_documents(texts)
-  

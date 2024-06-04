@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain_openai import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from sidebar import init_sidebar
 from google.cloud import bigquery
@@ -16,7 +16,9 @@ REGION = os.getenv("REGION")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
-llm = OpenAI(api_key=OPENAI_API_KEY, verbose=True)
+llm = ChatOpenAI(
+    temperature=0.1, model_name="gpt-3.5-turbo-16k", openai_api_key=OPENAI_API_KEY
+)
 client = bigquery.Client(project=PROJECT_ID, location=REGION)
 log = logging.getLogger(__name__)
 
@@ -67,9 +69,9 @@ def generate_question_based_on_topic():
     response = generative_ai_call(
         template, {"topic": topic, "level": level, "history": history}
     )
-    print(response)
-    st.session_state["question_history"].append(response)
-    return response
+    print(response.content)
+    st.session_state["question_history"].append(response.content)
+    return response.content
 
 
 def get_text_context_for_document_question():
@@ -107,9 +109,9 @@ def generate_question_based_on_document():
     )
     log.info(f"{template}\n +context:{context}\n")
 
-    st.session_state["question_history"].append(response)
+    st.session_state["question_history"].append(response.content)
     st.session_state["last_context"] = context
-    return response
+    return response.content
 
 
 def generate_question():
@@ -139,7 +141,7 @@ def check_answer_based_on_topic():
     result = generative_ai_call(
         template, {"topic": topic, "question": question, "answer": answer}
     )
-    return result
+    return result.content
 
 
 def check_answer_based_on_document():
@@ -164,7 +166,7 @@ def check_answer_based_on_document():
     result = generative_ai_call(
         template, {"context": context, "question": question, "answer": answer}
     )
-    return result
+    return result.content
 
 
 def check_answer():
